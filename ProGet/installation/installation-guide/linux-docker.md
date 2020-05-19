@@ -200,6 +200,47 @@ Any HTTP reverse proxy can work, but four specific examples are provided below:
 </tbody>
 </table>
 
+## Docker Compose
+Alternatively, you can use docker compose to instantiate your ProGet environment.  Create a docker-compose.yaml file, replacing all values denoted with curly braces in the below script.
+```
+version: '3.3'
+
+services:
+  server:
+    image: inedo/proget:latest
+    restart: unless-stopped
+    environment:
+      - PROGET_DB_TYPE=SqlServer 
+      - "PROGET_DATABASE=Server=db;Database={your ProGet database name};User Id={your ProGet user name};Password={your ProGet user passwrod}"
+    volumes:
+      - /srv/proget/data/packages:/var/proget/packages
+      - /srv/proget/data/extensions:/var/proget/extensions
+    ports:
+      - {your ProGet port}:80
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    restart: unless-stopped
+    volumes:
+      - {your path to mssql data}:/var/opt/mssql/data
+      - {your path to mssql logs}:/var/opt/mssql/log
+      - {your path to mssql secrets}:/var/opt/mssql/secrets
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Express
+      # This line can be removed once you have created your sql database and user
+      - MSSQL_SA_PASSWORD={your sa password}
+    volumes:
+      - /srv/mssql/data:/var/opt/mssql
+    # Ports can be removed once you have created your sql database and user
+    ports:
+      - {your ProGet port}:80
+```
+Create your containers by running the following bash command
+```
+docker-compose up -d
+```
+
 ## Limitations and Known Issues {#limitations data-title="Limitations"}
 
 Although ProGet's codebase is largely platform-independent, there are a few platform-specific features from the Windows version that had to be omitted:
